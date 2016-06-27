@@ -1729,24 +1729,42 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                 {
                     if ( isFootNoteBody )
                         context.enterFootNote( enode->getAttributeValue(attr_id) );
-
-
                     // recurse all sub-blocks for blocks
                     int y = padding_top;
                     int cnt = enode->getChildCount();
                     lvRect r;
+                    int list_marker_height = 0;
                     enode->getAbsRect(r);
                     if (margin_top>0)
                         context.AddLine(r.top - margin_top, r.top, pagebreakhelper(enode,width));
                     if (padding_top>0)
                         context.AddLine(r.top,r.top+padding_top,pagebreakhelper(enode,width));
+                    if ( enode->getStyle()->display==css_d_list_item ) {
+                        // the list marker will be drawn next to the child elements.
+                        LFormattedTextRef txform( enode->getDocument()->createFormattedText() );
+                        int li_padding;
+                        lString16 marker = renderListItemMarker( enode, li_padding, txform.get(), 16, 0);
+                        width -= li_padding;
+                        // format the first child with enough room for both the list marker and the child itself.
+                        list_marker_height = txform->Format( (lUInt16)width, (lUInt16)enode->getDocument()->getPageHeight() );
+                        if (cnt==0) {
+                            // if there aren't children ensure this node is still formatted with room for the list marker
+                            y += list_marker_height;
+                        }
+                    }
+
                     for (int i=0; i<cnt; i++)
                     {
                         ldomNode * child = enode->getChildNode( i );
                         //fmt.push();
                         int h = renderBlockElement( context, child, padding_left, y,
                             width - padding_left - padding_right );
-                        y += h;
+                        if (i==0 && list_marker_height > h) {
+                            y += list_marker_height;
+                        }
+                        else {
+                            y += h;
+                        }
                     }
                     int st_y = lengthToPx( enode->getStyle()->height, em, em );
                     if ( y < st_y )
