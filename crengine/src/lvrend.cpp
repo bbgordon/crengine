@@ -2533,7 +2533,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     LFormattedTextRef txform( enode->getDocument()->createFormattedText() );
                     int li_padding;
                     lString16 marker = renderListItemMarker( enode, li_padding, txform.get(), 16, 0, first_child_padding);
-                    txform->Format( (lUInt16)width, (lUInt16)page_height );
+                    lUInt32 h = txform->Format( (lUInt16)width, (lUInt16)page_height );
                     if ( li_padding ) {
                         // draw marker outside and pad all children to make room
                         doc_x += li_padding;
@@ -2554,8 +2554,12 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                         }
                     }
                     if ( !child_with_list_marker ) {
-                        DrawBackgroundImage(enode,drawbuf,x0,y0,doc_x,doc_y,fmt);
-                        txform->Draw( &drawbuf, doc_x+x0 + padding_left, doc_y+y0 + padding_top, NULL, NULL );
+                        lvRect clip;
+                        drawbuf.GetClipRect( &clip );
+                        if (h + doc_y <= clip.bottom) {
+                            DrawBackgroundImage(enode,drawbuf,x0,y0,doc_x,doc_y,fmt);
+                            txform->Draw( &drawbuf, doc_x+x0 + padding_left, doc_y+y0 + padding_top, NULL, NULL );
+                        }
                     }
                 }
 
