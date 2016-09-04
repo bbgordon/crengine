@@ -10849,6 +10849,14 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
                 // do nothing
                 break;
             }
+            switch (st) {
+            case css_lst_decimal:
+            case css_lst_lower_roman:
+            case css_lst_upper_roman:
+            case css_lst_lower_alpha:
+            case css_lst_upper_alpha:
+                marker.append(1, (lChar16)'.');
+            }
         }
         break;
     }
